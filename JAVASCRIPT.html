@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="text/javascript">
+            var config = {
+                w:1,
+                s:-1,
+                d:1,
+                a:-1,
+                snappy:10
+            };
+			
+        var stats = {
+            vrt:0,
+            hzt:0,
+            tilt:0,
+			w: 160
+        };
+        
+        var ball = {
+            div: {},
+            size: 20,
+            xy: [0, 0],
+            spd: 10,
+            traj: null
+        };
+		
+		var world = {
+			wh: [800, 450]
+		};
+        ball.traj = (Math.random() - 0.5) * Math.PI;
+		alert(ball.traj);
+        
+        window.onload = function() {
+            /*var i = 0;
+             setTimeout(function(){
+             i = i % 60;
+             document.getElementById('display').innerHTML = i;
+             i += 1;
+             }, 40);*/
+			document.getElementById('display').style.width = stats.w + 'px';
+			drawWorld();
+            getMovin();
+        }
+        
+        function moveBall() {
+            //ball.xy += [ball.xy[0] * ball.spd * Math.cos(ball.traj), ball.xy[1] * ball.spd * Math.sin(ball.traj)];
+			ball.xy[0] += ball.spd * Math.cos(ball.traj);
+			ball.xy[1] += ball.spd * Math.sin(ball.traj);
+            ball.div.style.left = ball.xy[0] + 'px';
+            ball.div.style.top = ball.xy[1] + 'px';
+        }
+        
+        function getMovin() {
+            setTimeout(moveBall(), 40);
+        }
+		
+		function drawWorld() {
+			var w = document.getElementById('world');
+			stats.hzt = (world.wh[1] - stats.w) / 2;
+            document.getElementById('display').style.left = stats.hzt + 'px';
+			ball.xy[0] = stats.hzt;	
+            document.getElementById('debug2').innerHTML = 'Zero point: ' + stats.hzt + 'px';
+            ball.div = document.getElementById('ball');
+			ball.div.style.left = ball.xy[0] + 'px';
+			w.style.width = world.wh[0] + 'px';
+			w.style.height = world.wh[1] + 'px';
+		}
+        
+        window.addEventListener('keypress', control);
+        
+        function control(e) {
+            document.getElementById('display').style.position = 'absolute';
+            let key = String.fromCharCode(e.keyCode);
+            document.getElementById('debug').innerHTML = key;
+            let a = config.snappy * config[key];
+            switch(key){
+                case 'w':
+                case 's':
+                stats['tilt'] += a;
+                document.getElementById('display').style.transform = 'rotate(' + stats['tilt'] + 'deg)';
+                document.getElementById('debug2').innerHTML = stats['tilt'] + ' degrees';
+                break;
+                
+                case 'd':
+                case 'a':
+                stats['hzt'] += a;
+                document.getElementById('display').style.left = stats['hzt'] + 'px';
+                document.getElementById('debug2').innerHTML = stats['hzt'] + 'px';
+                break;
+                
+				case 'm':
+				moveBall();
+				
+                default:
+                document.getElementById('debug2').innerHTML = 'controls: ' + config;
+            }
+        }
+        </script>
+        
+        <style type="text/css">
+            h1 {
+                text-transform: uppercase;
+            }
+        
+        div#display {
+            border: solid 2px cyan;
+            background-color: red;
+            height: 20px;
+        }
+        
+        div#debug {
+            background-color: #333;
+            border: solid 2px blue;
+            color: #0f0;
+            width: 100px;
+            height: 50px;
+        }
+        
+        div#debug2 {
+            background-color: #666;
+            border: solid 2px blue;
+            color: #f66;
+            width: 100px;
+            height: 50px;
+        }
+        
+        div#ball {
+            position: relative;
+            background-color: orange;
+            border: solid 2px black;
+            border-radius: 20px;
+            width: 20px;
+            height: 20px;
+        }
+		
+		div#world {
+			position: relative;
+			border: dotted 2px brown;
+			margin: auto;
+		}
+        </style>
+    </head>
+    
+    <body>
+        <h1>Draw</h1>
+		<div id="world">world
+			<div id="ball"></div>
+			<div id="display">O</div>
+		</div>
+        <div id="debug"></div>
+        <div id="debug2"></div>
+    </body>
+</html>
