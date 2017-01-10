@@ -24,7 +24,6 @@
 				var reader = new FileReader();
 				reader.onload = function() {
 					// document.getElementById('format').innerHTML += CSVToArray(reader.result);
-					// document.getElementById('format').innerHTML += reader.result;
 					tablize(reader.result, filename);
 				};
 				reader.readAsText(file);
@@ -46,11 +45,9 @@
 					fmt += '<td>' + cells[k].substring(0, cells[k].length).replace(/""+/g, '"') + '</td>';
 				}
 				fmt += '</tr>';
-console.log(line);
 			}
 			fmt = '<table id="' + tblName + '"><th colspan="' + cols + '">' + tblName + '</th>' + fmt + '</table>';
 			document.getElementById('format').innerHTML += fmt;
-			console.log(fmt + '\n' + cols);
 		}
 		
 		// This will parse a delimited string into an array of
