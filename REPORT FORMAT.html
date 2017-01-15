@@ -1,151 +1,207 @@
 <!DOCTYPE html>
 <html>
     <head>
-		<script type="text/javascript">
-		window.onload = function() {
-			var d = document.getElementById('drop');
-			d.addEventListener('dragover', function(e){
-				e.preventDefault();
-				d.style.background = 'purple';
-				});
-			d.addEventListener('dragleave', function(){d.style.background = '#cdf'});
-			d.addEventListener('mouseout', function(){d.style.background = '#cdf'});
-			d.addEventListener('drop', receiveFiles);
-		};
-		
-		function receiveFiles(e) {
-			e.preventDefault();
-			e.stopPropagation();
-			//e.dataTransfer.dropEffect = 'copy';
-			var files = e.dataTransfer.files;
-			for (var i = 0, file; file = files[i]; i++){
-				var filename = file.name;
-				document.getElementById('drop').innerHTML += filename + '<br />';
-				var reader = new FileReader();
-				reader.onload = function() {
-					// document.getElementById('format').innerHTML += CSVToArray(reader.result);
-					tablize(reader.result, filename);
-				};
-				reader.readAsText(file);
-			}
-		}
-		
-		function tablize(csvData, tblName) {
-			var lines = csvData.split(/[\r\n]+/g);
-			var cols = 0;
-			var fmt = '';
-			for (var j = 0; j < lines.length-1; j++){
-				fmt += '<tr>';
-				var line = lines[j];
-				var cells = line.split('","');
-				cols = cells.length;
-				cells[0] = cells[0].substring(1, cells[0].length);
-				cells[cols-1] = cells[cols-1].substring(0, cells[cols-1].length-1);
-				for (var k = 0; k < cols; k++){
-					fmt += '<td>' + cells[k].substring(0, cells[k].length).replace(/""+/g, '"') + '</td>';
-				}
-				fmt += '</tr>';
-			}
-			fmt = '<table id="' + tblName + '"><th colspan="' + cols + '">' + tblName + '</th>' + fmt + '</table>';
-			document.getElementById('format').innerHTML += fmt;
-		}
-		
-		// This will parse a delimited string into an array of
-    // arrays. The default delimiter is the comma, but this
-    // can be overriden in the second argument.
-    function CSVToArray( strData, strDelimiter ){
-        // Check to see if the delimiter is defined. If not,
-        // then default to comma.
-        strDelimiter = (strDelimiter || ",");
-        // Create a regular expression to parse the CSV values.
-        var objPattern = new RegExp(
-            (
-                // Delimiters.
-                "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
-                // Quoted fields.
-                "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
-                // Standard fields.
-                "([^\"\\" + strDelimiter + "\\r\\n]*))"
-            ),
-            "gi"
-            );
-        // Create an array to hold our data. Give the array
-        // a default empty first row.
-        var arrData = [[]];
-        // Create an array to hold our individual pattern
-        // matching groups.
-        var arrMatches = null;
-        // Keep looping over the regular expression matches
-        // until we can no longer find a match.
-        while (arrMatches = objPattern.exec( strData )){
-            // Get the delimiter that was found.
-            var strMatchedDelimiter = arrMatches[ 1 ];
-            // Check to see if the given delimiter has a length
-            // (is not the start of string) and if it matches
-            // field delimiter. If id does not, then we know
-            // that this delimiter is a row delimiter.
-            if (
-                strMatchedDelimiter.length &&
-                (strMatchedDelimiter != strDelimiter)
-                ){
-                // Since we have reached a new row of data,
-                // add an empty row to our data array.
-                arrData.push( [] );
+        <script type="text/javascript">
+            window.onload = function() {
+                var d = document.getElementById('drop');
+                d.addEventListener('dragover', function(e){
+                                   e.preventDefault();
+                                   d.style.background = '#def';
+                                   d.style.borderColor = '#cdf';
+                                   });
+                                   d.addEventListener('dragleave', function(){d.style.background = '#cdf'; d.style.borderColor = '#def';});
+                                   d.addEventListener('mouseout', function(){d.style.background = '#cdf'; d.style.borderColor = '#def';});
+                                   d.addEventListener('drop', receiveFiles);
+            };
+        
+        function receiveFiles(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            //e.dataTransfer.dropEffect = 'copy';
+            var files = e.dataTransfer.files;
+            var data = new Array();
+            for (var i = 0, file; file = files[i]; i++){
+                var filename = file.name;
+                document.getElementById('drop').innerHTML += filename + '<br />';
+                var reader = new FileReader();
+                reader.onload = function() {
+                    // tablize(reader.result, filename);
+                    data = CSVToArray(reader.result);
+                    arrayToTable(data, filename);
+                };
+                reader.readAsText(file);
             }
-            // Now that we have our delimiter out of the way,
-            // let's check to see which kind of value we
-            // captured (quoted or unquoted).
-            if (arrMatches[ 2 ]){
-                // We found a quoted value. When we capture
-                // this value, unescape any double quotes.
-                var strMatchedValue = arrMatches[ 2 ].replace(
-                    new RegExp( "\"\"", "g" ),
-                    "\""
-                    );
-            } else {
-                // We found a non-quoted value.
-                var strMatchedValue = arrMatches[ 3 ];
-            }
-            // Now that we have our value string, let's add
-            // it to the data array.
-            arrData[ arrData.length - 1 ].push( strMatchedValue );
         }
-        // Return the parsed data.
-        return( arrData );
-    }
-		
-		</script>
+        
+        function arrayToTable(tableData, tableName) {
+            var table = document.createElement('table');
+            var tableHeader = document.createElement('th');
+            tableHeader.appendChild(document.createTextNode(tableName));
+            var tableBody = document.createElement('tbody');
+            var countColumns = null;
+            var logger = [];
+            var tcPattern = RegExp('/\:|\"', 'gi');
+            tableData.forEach(function(rowData){
+                              var row = document.createElement('tr');
+                              if (countColumns === null) countColumns = rowData.length;
+                              var tcHash = hashTC(rowData[0]);
+                              if (!logger[tcHash]){
+                              logger[tcHash] = rowData;
+                              rowData.forEach(function(cellData){
+                                              var cell = document.createElement('td');
+                                              cell.appendChild(document.createTextNode(cellData));
+                                              row.appendChild(cell);
+                                              });
+                              } else if (logger[tcHash] !== rowData[0]){
+                              for (var i = 0; i < logger[tcHash].length; i++){
+                              var cellData = rowData[i];
+                              var cell = document.createElement('td');
+                              logger[tcHash][i] += ' + ' + cellData;
+                              cell.appendChild(document.createTextNode(cellData));
+                              row.appendChild(cell);
+                              }
+                              } else {
+                              //do nothing
+                              }
+                              tableBody.appendChild(row);
+                              });
+                              tableHeader.colspan = countColumns;
+                              table.appendChild(tableHeader);
+                              table.appendChild(tableBody);
+                              document.body.appendChild(table);
+        }
+        
+        function hashTC(tcString){
+            var tcSplit = tcString.split(/"|:/);
+                                         var checkSum = tcSplit.forEach(function(number){
+                                                                        checkSum += number;
+                                                                        });
+                                         return checkSum;
+                                         }
+                                         
+                                         function tablize(csvData, tblName) {
+                                         var lines = csvData.split(/[\r\n]+/g);
+                                         var cols = 0;
+                                         var fmt = '';
+                                         for (var j = 0; j < lines.length-1; j++){
+                                         fmt += '<tr>';
+                                         var line = lines[j];
+                                         var cells = line.split('","');
+                                         cols = cells.length;
+                                         cells[0] = cells[0].substring(1, cells[0].length);
+                                         cells[cols-1] = cells[cols-1].substring(0, cells[cols-1].length-1);
+                                         for (var k = 0; k < cols; k++){
+                                         fmt += '<td>' + cells[k].substring(0, cells[k].length).replace(/""+/g, '"') + '</td>';
+                                         }
+                                         fmt += '</tr>';
+                                         }
+                                         fmt = '<table id="' + tblName + '"><th colspan="' + cols + '">' + tblName + '</th>' + fmt + '</table>';
+                                         document.getElementById('format').innerHTML += fmt;
+                                         }
+                                         
+                                         // This will parse a delimited string into an array of
+                                         // arrays. The default delimiter is the comma, but this
+                                         // can be overriden in the second argument.
+                                         function CSVToArray( strData, strDelimiter ){
+                                         // Check to see if the delimiter is defined. If not,
+                                         // then default to comma.
+                                         strDelimiter = (strDelimiter || ",");
+                                         // Create a regular expression to parse the CSV values.
+                                         var objPattern = new RegExp(
+                                                                     (
+                                                                      // Delimiters.
+                                                                      "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+                                                                      // Quoted fields.
+                                                                      "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+                                                                      // Standard fields.
+                                                                      "([^\"\\" + strDelimiter + "\\r\\n]*))"
+                                                                      ),
+                                                                     "gi"
+                                                                     );
+                                         // Create an array to hold our data. Give the array
+                                         // a default empty first row.
+                                         var arrData = [[]];
+                                         // Create an array to hold our individual pattern
+                                         // matching groups.
+                                         var arrMatches = null;
+                                         // Keep looping over the regular expression matches
+                                         // until we can no longer find a match.
+                                         while (arrMatches = objPattern.exec( strData )){
+                                         // Get the delimiter that was found.
+                                         var strMatchedDelimiter = arrMatches[ 1 ];
+                                         // Check to see if the given delimiter has a length
+                                         // (is not the start of string) and if it matches
+                                         // field delimiter. If id does not, then we know
+                                         // that this delimiter is a row delimiter.
+                                         if (
+                                             strMatchedDelimiter.length &&
+                                             (strMatchedDelimiter != strDelimiter)
+                                             ){
+                                         // Since we have reached a new row of data,
+                                         // add an empty row to our data array.
+                                         arrData.push( [] );
+                                         }
+                                         // Now that we have our delimiter out of the way,
+                                         // let's check to see which kind of value we
+                                         // captured (quoted or unquoted).
+                                         if (arrMatches[ 2 ]){
+                                         // We found a quoted value. When we capture
+                                         // this value, unescape any double quotes.
+                                         var strMatchedValue = arrMatches[ 2 ].replace(
+                                                                                       new RegExp( "\"\"", "g" ),
+                                                                                       "\""
+                                                                                       );
+                                         } else {
+                                         // We found a non-quoted value.
+                                         var strMatchedValue = arrMatches[ 3 ];
+                                         }
+                                         // Now that we have our value string, let's add
+                                         // it to the data array.
+                                         arrData[ arrData.length - 1 ].push( strMatchedValue );
+                                         }
+                                         // Return the parsed data.
+                                         return( arrData );
+                                         }
+                                         
+                                         </script>
         
         <style type="text/css">
-			body {
-				font-family: 'calibri';
-				font-size: 11pt;
-			}
-			
-            h1 {
-                text-transform: uppercase;
+            body {
+                font-family: 'calibri';
+                font-size: 11pt;
             }
-			
-			div#drop {
-				width: 800px;
-				height: 450px;
-				margin: auto;
-				border: dotted 4px cyan;
-				background-color: #cdf;
-			}
-			table, td {
-				border: none;//1px solid black;
-				border-collapse: collapse;
-				padding: 2px 5px 2px 5px;
-				margin: 0px;
-			}
+        
+        h1 {
+            text-transform: uppercase;
+        }
+        
+        div#drop {
+            width: 800px;
+            height: 450px;
+            margin: auto;
+            border: dotted 4px #cdf;
+            border-radius: 20px;
+            background-color: #def;
+        }
+        
+        table, td {
+            border: none;//1px solid black;
+            border-collapse: collapse;
+            padding: 2px 5px 2px 5px;
+            margin: 0px;
+        }
+        
+        th {
+            text-align: center;
+            border: 1px solid orange;
+        }
         </style>
     </head>
     
     <body>
         <h1>Report Format</h1>
-		<div id="drop"></div>
-		<div id="format"></div>
+        <div id="drop"></div>
+        <div id="format"></div>
         <div id="debug"></div>
         <div id="debug2"></div>
     </body>
