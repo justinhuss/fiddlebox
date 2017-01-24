@@ -34,136 +34,195 @@
         }
         
         function arrayToTable(tableData, tableName) {
-            var table = document.createElement('table');
-            var tableHeader = document.createElement('th');
-            tableHeader.appendChild(document.createTextNode(tableName));
-            var tableBody = document.createElement('tbody');
-            var countColumns = null;
+            //organizing table first
+            //getting rid of duplicate data
             var logger = [];
+            tableData.forEach(
+                              function(rowData){
+                              var tc = tcToTable(rowData[0]);
+                              //var logLine = logger[tc[0]][tc[1]][tc[2]][tc[3]];
+                              if (!logger[tc[0]][tc[1]][tc[2]][tc[3]]) {
+                              //not registered yet, add row
+                              for (var j = 1; j < rowData.length; j++){
+                                logger[tc[0]][tc[1]][tc[2]][tc[3]][j] = rowData[j];
+                              }
+        } else {
+            //tc registered, add data if different
+            for (k = 1; k < rowData.length; k++) {
+                if (logger[tc[0]][tc[1]][tc[2]][tc[3]][j] !== rowData[j]) {
+                    loglogger[tc[0]][tc[1]][tc[2]][tc[3]]Line[j] += ' + ' + rowData[j];
+                }
+            }
+        }
+                              }
+            );
+            console.log(logger);
+            /*
+            //initializing a HTML table
+            var table = document.createElement('table');
+            //initializing its header, text and colspan
+            var tableHeader = document.createElement('th');
+            tableHeader.colspan = tableData[0].length;
+            tableHeader.appendChild(document.createTextNode(tableName));
+            //initializing its body
+            var tableBody = document.createElement('tbody');
+            //the regular expression to isolate timecode values
             var tcPattern = RegExp('/\:|\"', 'gi');
+            //going through the data array
             tableData.forEach(function(rowData){
+                              //for each line of data we create a HTML row
                               var row = document.createElement('tr');
-                              if (countColumns === null) countColumns = rowData.length;
+                              //we calculate this row's TC hash using our custom function hashTC
                               var tcHash = hashTC(rowData[0]);
-                              if (!logger[tcHash]){
-                              logger[tcHash] = rowData;
-                              rowData.forEach(function(cellData){
+                              
+                              if (!logger[tcHash]){ //this data has not yet been recorded
+                              //we populate the row's cells with the data
+                              rowData.forEach(
+                                              function(cellData){
                                               var cell = document.createElement('td');
                                               cell.appendChild(document.createTextNode(cellData));
                                               row.appendChild(cell);
                                               });
-                              } else if (logger[tcHash] !== rowData[0]){
-                              for (var i = 0; i < logger[tcHash].length; i++){
+                              //we log the data in the logger array
+                              logger[tcHash][0] = rowData;
+                              }
+                              else {
+                              //tcHash exist, do TCs match?
+                              for (var k = 0; k < logger[tcHash].length; k++) {
+                              var logLine = logger[tcHash][k];
+                              if (logLine[0] === rowData[0]) {
+                              //TCs match, does each cell's data match?
+                              for (var l = 0; l < logLine.length; l++){
+                              //combine data if it does not match
+                              if (logLine[l] !== rowData[l]) logLine[l] += ' + ' + rowData[l];
+                              }
+                              }
+                              }
+                              else {
+                              //TC not yet recorded
+                              //record it
+                              logger[tcHash][logger[tcHash].length] = rowData;
+                              }
+                              //create a HTML cell for each block of data
+                              for (var i = 0; i < rowData.length; i++){
                               var cellData = rowData[i];
                               var cell = document.createElement('td');
+                              
                               logger[tcHash][i] += ' + ' + cellData;
                               cell.appendChild(document.createTextNode(cellData));
                               row.appendChild(cell);
                               }
-                              } else {
+                              {
                               //do nothing
                               }
                               tableBody.appendChild(row);
                               });
-                              tableHeader.colspan = countColumns;
+                              console.log("logger : " + logger);
                               table.appendChild(tableHeader);
                               table.appendChild(tableBody);
-                              document.body.appendChild(table);
+                              document.body.appendChild(table);*/
         }
         
-        function hashTC(tcString){
-            var tcSplit = tcString.split(/"|:/);
-                                         var checkSum = tcSplit.forEach(function(number){
-                                                                        checkSum += number;
-                                                                        });
-                                         return checkSum;
-                                         }
-                                         
-                                         function tablize(csvData, tblName) {
-                                         var lines = csvData.split(/[\r\n]+/g);
-                                         var cols = 0;
-                                         var fmt = '';
-                                         for (var j = 0; j < lines.length-1; j++){
-                                         fmt += '<tr>';
-                                         var line = lines[j];
-                                         var cells = line.split('","');
-                                         cols = cells.length;
-                                         cells[0] = cells[0].substring(1, cells[0].length);
-                                         cells[cols-1] = cells[cols-1].substring(0, cells[cols-1].length-1);
-                                         for (var k = 0; k < cols; k++){
-                                         fmt += '<td>' + cells[k].substring(0, cells[k].length).replace(/""+/g, '"') + '</td>';
-                                         }
-                                         fmt += '</tr>';
-                                         }
-                                         fmt = '<table id="' + tblName + '"><th colspan="' + cols + '">' + tblName + '</th>' + fmt + '</table>';
-                                         document.getElementById('format').innerHTML += fmt;
-                                         }
-                                         
-                                         // This will parse a delimited string into an array of
-                                         // arrays. The default delimiter is the comma, but this
-                                         // can be overriden in the second argument.
-                                         function CSVToArray( strData, strDelimiter ){
-                                         // Check to see if the delimiter is defined. If not,
-                                         // then default to comma.
-                                         strDelimiter = (strDelimiter || ",");
-                                         // Create a regular expression to parse the CSV values.
-                                         var objPattern = new RegExp(
-                                                                     (
-                                                                      // Delimiters.
-                                                                      "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
-                                                                      // Quoted fields.
-                                                                      "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
-                                                                      // Standard fields.
-                                                                      "([^\"\\" + strDelimiter + "\\r\\n]*))"
-                                                                      ),
-                                                                     "gi"
-                                                                     );
-                                         // Create an array to hold our data. Give the array
-                                         // a default empty first row.
-                                         var arrData = [[]];
-                                         // Create an array to hold our individual pattern
-                                         // matching groups.
-                                         var arrMatches = null;
-                                         // Keep looping over the regular expression matches
-                                         // until we can no longer find a match.
-                                         while (arrMatches = objPattern.exec( strData )){
-                                         // Get the delimiter that was found.
-                                         var strMatchedDelimiter = arrMatches[ 1 ];
-                                         // Check to see if the given delimiter has a length
-                                         // (is not the start of string) and if it matches
-                                         // field delimiter. If id does not, then we know
-                                         // that this delimiter is a row delimiter.
-                                         if (
-                                             strMatchedDelimiter.length &&
-                                             (strMatchedDelimiter != strDelimiter)
-                                             ){
-                                         // Since we have reached a new row of data,
-                                         // add an empty row to our data array.
-                                         arrData.push( [] );
-                                         }
-                                         // Now that we have our delimiter out of the way,
-                                         // let's check to see which kind of value we
-                                         // captured (quoted or unquoted).
-                                         if (arrMatches[ 2 ]){
-                                         // We found a quoted value. When we capture
-                                         // this value, unescape any double quotes.
-                                         var strMatchedValue = arrMatches[ 2 ].replace(
-                                                                                       new RegExp( "\"\"", "g" ),
-                                                                                       "\""
-                                                                                       );
-                                         } else {
-                                         // We found a non-quoted value.
-                                         var strMatchedValue = arrMatches[ 3 ];
-                                         }
-                                         // Now that we have our value string, let's add
-                                         // it to the data array.
-                                         arrData[ arrData.length - 1 ].push( strMatchedValue );
-                                         }
-                                         // Return the parsed data.
-                                         return( arrData );
-                                         }
-                                         
-                                         </script>
+        function tcToTable(tcString) {
+            return tcString.split(/"|:/);
+                                  }
+                                  
+                                  function hashTC(tcString) {
+                                  var tcSplit = tcString.split(/"|:/);
+                                                               var checkSum = 0;
+                                                               tcSplit.forEach(function(number){
+                                                                               checkSum += 1*number; //using 1* to convert a string to a number
+                                                                               console.log(number);
+                                                                               });
+                                                               console.log('checkSum = ' + checkSum);
+                                                               return checkSum;
+                                                               }
+                                                               
+                                                               function tablize(csvData, tblName) {
+                                                               var lines = csvData.split(/[\r\n]+/g);
+                                                               var cols = 0;
+                                                               var fmt = '';
+                                                               for (var j = 0; j < lines.length-1; j++){
+                                                               fmt += '<tr>';
+                                                               var line = lines[j];
+                                                               var cells = line.split('","');
+                                                               cols = cells.length;
+                                                               cells[0] = cells[0].substring(1, cells[0].length);
+                                                               cells[cols-1] = cells[cols-1].substring(0, cells[cols-1].length-1);
+                                                               for (var k = 0; k < cols; k++){
+                                                               fmt += '<td>' + cells[k].substring(0, cells[k].length).replace(/""+/g, '"') + '</td>';
+                                                               }
+                                                               fmt += '</tr>';
+                                                               }
+                                                               fmt = '<table id="' + tblName + '"><th colspan="' + cols + '">' + tblName + '</th>' + fmt + '</table>';
+                                                               document.getElementById('format').innerHTML += fmt;
+                                                               }
+                                                               
+                                                               // This will parse a delimited string into an array of
+                                                               // arrays. The default delimiter is the comma, but this
+                                                               // can be overriden in the second argument.
+                                                               function CSVToArray( strData, strDelimiter ){
+                                                               // Check to see if the delimiter is defined. If not,
+                                                               // then default to comma.
+                                                               strDelimiter = (strDelimiter || ",");
+                                                               // Create a regular expression to parse the CSV values.
+                                                               var objPattern = new RegExp(
+                                                                                           (
+                                                                                            // Delimiters.
+                                                                                            "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+                                                                                            // Quoted fields.
+                                                                                            "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+                                                                                            // Standard fields.
+                                                                                            "([^\"\\" + strDelimiter + "\\r\\n]*))"
+                                                                                            ),
+                                                                                           "gi"
+                                                                                           );
+                                                               // Create an array to hold our data. Give the array
+                                                               // a default empty first row.
+                                                               var arrData = [[]];
+                                                               // Create an array to hold our individual pattern
+                                                               // matching groups.
+                                                               var arrMatches = null;
+                                                               // Keep looping over the regular expression matches
+                                                               // until we can no longer find a match.
+                                                               while (arrMatches = objPattern.exec( strData )){
+                                                               // Get the delimiter that was found.
+                                                               var strMatchedDelimiter = arrMatches[ 1 ];
+                                                               // Check to see if the given delimiter has a length
+                                                               // (is not the start of string) and if it matches
+                                                               // field delimiter. If id does not, then we know
+                                                               // that this delimiter is a row delimiter.
+                                                               if (
+                                                                   strMatchedDelimiter.length &&
+                                                                   (strMatchedDelimiter != strDelimiter)
+                                                                   ){
+                                                               // Since we have reached a new row of data,
+                                                               // add an empty row to our data array.
+                                                               arrData.push( [] );
+                                                               }
+                                                               // Now that we have our delimiter out of the way,
+                                                               // let's check to see which kind of value we
+                                                               // captured (quoted or unquoted).
+                                                               if (arrMatches[ 2 ]){
+                                                               // We found a quoted value. When we capture
+                                                               // this value, unescape any double quotes.
+                                                               var strMatchedValue = arrMatches[ 2 ].replace(
+                                                                                                             new RegExp( "\"\"", "g" ),
+                                                                                                             "\""
+                                                                                                             );
+                                                               } else {
+                                                               // We found a non-quoted value.
+                                                               var strMatchedValue = arrMatches[ 3 ];
+                                                               }
+                                                               // Now that we have our value string, let's add
+                                                               // it to the data array.
+                                                               arrData[ arrData.length - 1 ].push( strMatchedValue );
+                                                               }
+                                                               // Return the parsed data.
+                                                               return( arrData );
+                                                               }
+                                                               
+                                                               </script>
         
         <style type="text/css">
             body {

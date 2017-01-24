@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="text/javascript">
+            var divColor = ['blue','yellow'];
+            var turn = 0;
+            function change(){
+                var div = document.getElementById('rectangle');
+                turn = turn % 2;
+                div.style.backgroundColor = divColor[turn];
+                turn += 1;
+            }
+        </script>
+        <style type="text/css">
+            div#rectangle {
+                width: 800px;
+                height: 450px;
+                background: red;
+                transition: .1s;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="rectangle"></div>
+        <form>
+            <input name="color" type="text" />
+            <button type="button" onclick="change();">Flip!</button>
+        </form>
+    </body>
+</html>
